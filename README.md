@@ -54,6 +54,15 @@ patched/lib/index.js 和 client.js 保留 Google 登录修复、弹出窗口捕�
   - 开启：注册为 dsh-better-sidebar 标签页。
   - 保存后刷新页面生效，不要求立刻切换。
 
+## 前置条件
+
+这是一个插件补丁，不是完整的 DSH 安装包。
+
+- DSH 0.2.2-rc.1 或兼容版本
+- 已安装官方 dsh-ego-browser@0.8.6
+- 若启动报 connection (required) webRuntime，先按 dsh-recovery 的 docs/ROOT-CAUSE-webRuntime.md 修复
+- dsh-setting-restart 是可选便利插件，单独私有仓库，不是本插件的运行依赖
+
 ## 安装
 
 先装官方 0.8.6：

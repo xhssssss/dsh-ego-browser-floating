@@ -3066,6 +3066,7 @@ function resolveEgoEnv(cfg, { platform = process.platform, baseEnv = process.env
 	if (env.EGO_LINUX_CHROME === void 0 && platform === "win32" && chrome) env.EGO_LINUX_CHROME = chrome;
 	if (env.EGO_LINUX_HEADLESS === void 0 && isHeadlessDetected(platform, env)) env.EGO_LINUX_HEADLESS = "1";
 	const configChromeArgs = cfg?.chromeArgs;
+	if (cfg?.enableSound !== void 0) env.EGO_BROWSER_UNMUTE = cfg.enableSound ? "1" : "0";
 	if (env.EGO_LINUX_EXTRA_ARGS === void 0) {
 		// Local patch (dsh-ego-browser): silent by DEFAULT. The agent browser
 		// runs unattended, so any page's autoplay would be an unwelcome
@@ -3074,7 +3075,6 @@ function resolveEgoEnv(cfg, { platform = process.platform, baseEnv = process.env
 		// unset/empty value keeps it muted. The flag itself lives in the
 		// runtime's LAUNCH_FLAGS; this bridge covers stock runtimes and makes
 		// the mute visible in `chromeArgs (effective)` in ego_doctor.
-		if (cfg?.enableSound !== void 0) env.EGO_BROWSER_UNMUTE = cfg.enableSound ? "1" : "0";
 		const unmute = cfg?.enableSound === true || /^(1|true|yes|on)$/i.test(env.EGO_BROWSER_UNMUTE ?? "");
 		const configArgs = typeof configChromeArgs === "string" ? configChromeArgs.trim() : "";
 		const parts = [configArgs, unmute ? "" : "--mute-audio"].filter((part) => part !== "");

@@ -46,6 +46,14 @@ window.__ModuleLoader__.load({
 			disableFrameRelayHint: "No picture is relayed at all: no ego-cast worker, no CDP/WGC screencast capture, no ffmpeg pull, and the watch panel opens no stream. ego_* tools keep working normally.",
 			disableFrameRelayOff: "Off (live view enabled)",
 			disableFrameRelayOn: "On (no picture pushed to this page)",
+			enableSound: "Enable agent browser sound",
+			enableSoundHint: "Off by default: Chrome starts with --mute-audio. When on, audio is allowed; Windows volume mixer may start at 0, raise it manually. Takes effect on the next browser cold start.",
+			enableSoundOff: "Off (muted)",
+			enableSoundOn: "On (allow audio)",
+			mergeSidebar: "Merge into dsh-better-sidebar",
+			mergeSidebarHint: "Off: floating watch panel. On: register as a better-sidebar tab. Refresh the page to apply.",
+			mergeSidebarOff: "Off (floating panel)",
+			mergeSidebarOn: "On (sidebar tab)",
 			relayDisabledTitle: "Live frame relay is disabled",
 			relayDisabledBody: "Turn off \"Disable live frame relay\" in Settings → Plugins → ego-browser to see the live view here.",
 			minUnit: "min",
@@ -123,6 +131,14 @@ window.__ModuleLoader__.load({
 			disableFrameRelayHint: "完全不回传画面：不启动 ego-cast worker，不做 CDP/WGC 屏幕采集与 ffmpeg 拉流，观察窗不再建立任何拉流连接。ego_* 工具本身照常可用。",
 			disableFrameRelayOff: "关闭（保留实时画面）",
 			disableFrameRelayOn: "开启（不回传任何画面）",
+			enableSound: "启用 agent 浏览器声音",
+			enableSoundHint: "默认关闭：Chrome 带 --mute-audio 启动。开启后允许发声；Windows 音量合成器里可能默认 0，需要手动调高。下次浏览器冷启动生效。",
+			enableSoundOff: "关闭（静音）",
+			enableSoundOn: "开启（允许声音）",
+			mergeSidebar: "合并到边栏",
+			mergeSidebarHint: "关闭：悬浮观察窗。开启：注册为 dsh-better-sidebar 标签页。刷新页面后生效。",
+			mergeSidebarOff: "关闭（悬浮窗）",
+			mergeSidebarOn: "开启（侧栏标签）",
 			relayDisabledTitle: "画面回传已禁用",
 			relayDisabledBody: "在「设置 → 插件 → ego-browser」中关闭「禁用画面回传」后，这里才会显示实时画面。",
 			minUnit: "分钟",
@@ -328,6 +344,8 @@ window.__ModuleLoader__.load({
 				draft: {
 					isolateSpaces: false,
 					disableFrameRelay: false,
+					enableSound: false,
+					mergeSidebar: false,
 					idleTimeoutMin: "0",
 					chromePath: "",
 					captureBackend: "auto",
@@ -390,6 +408,9 @@ window.__ModuleLoader__.load({
 					return;
 				}
 				var config = parsed.value.config || {};
+				try {
+					window.localStorage.setItem("ego.mergeSidebar", config.mergeSidebar === true || config.mergeSidebar === "true" || config.mergeSidebar === 1 || config.mergeSidebar === "1" ? "1" : "0");
+				} catch (e) {}
 				var ffmpegStatus = parsed.value.ffmpegStatus || {
 					state: "missing",
 					canDownload: false,
@@ -406,6 +427,8 @@ window.__ModuleLoader__.load({
 						isolateSpaces: config.isolateSpaces === true || config.isolateSpaces === "true" || config.isolateSpaces === 1 || config.isolateSpaces === "1",
 						idleTimeoutMin: String(config.idleTimeoutMin ?? 0),
 						disableFrameRelay: config.disableFrameRelay === true || config.disableFrameRelay === "true" || config.disableFrameRelay === 1 || config.disableFrameRelay === "1",
+						enableSound: config.enableSound === true || config.enableSound === "true" || config.enableSound === 1 || config.enableSound === "1",
+						mergeSidebar: config.mergeSidebar === true || config.mergeSidebar === "true" || config.mergeSidebar === 1 || config.mergeSidebar === "1",
 						chromePath: config.chromePath || "",
 						captureBackend: config.captureBackend === "ffmpeg" && !ffmpegStatus.canSelectFfmpeg ? "cdp" : config.captureBackend || "auto",
 						streamProfile: config.streamProfile || "balanced",
@@ -594,6 +617,9 @@ window.__ModuleLoader__.load({
 					return;
 				}
 				var config = parsed.value.config || {};
+				try {
+					window.localStorage.setItem("ego.mergeSidebar", config.mergeSidebar === true || config.mergeSidebar === "true" || config.mergeSidebar === 1 || config.mergeSidebar === "1" ? "1" : "0");
+				} catch (e) {}
 				var ffmpegStatus = parsed.value.ffmpegStatus || self.store.getSnapshot().ffmpegStatus;
 				frameRelaySet(config.disableFrameRelay);
 				self.staged.clear();
@@ -603,6 +629,8 @@ window.__ModuleLoader__.load({
 						isolateSpaces: config.isolateSpaces === true || config.isolateSpaces === "true" || config.isolateSpaces === 1 || config.isolateSpaces === "1",
 						idleTimeoutMin: String(config.idleTimeoutMin ?? 0),
 						disableFrameRelay: config.disableFrameRelay === true || config.disableFrameRelay === "true" || config.disableFrameRelay === 1 || config.disableFrameRelay === "1",
+						enableSound: config.enableSound === true || config.enableSound === "true" || config.enableSound === 1 || config.enableSound === "1",
+						mergeSidebar: config.mergeSidebar === true || config.mergeSidebar === "true" || config.mergeSidebar === 1 || config.mergeSidebar === "1",
 						chromePath: config.chromePath || "",
 						captureBackend: config.captureBackend === "ffmpeg" && ffmpegStatus && !ffmpegStatus.canSelectFfmpeg ? "cdp" : config.captureBackend || "auto",
 						streamProfile: config.streamProfile || "balanced",
@@ -914,6 +942,38 @@ window.__ModuleLoader__.load({
 					disabled: busy,
 					onEdit: function(v) {
 						controller.edit("disableFrameRelay", v === "true");
+					}
+				}), h(SettingsField, {
+					id: "plugin-config-ego-browser-enablesound",
+					label: t("enableSound"),
+					hint: t("enableSoundHint"),
+					value: state.draft.enableSound ? "true" : "false",
+					options: [{
+						value: "false",
+						label: t("enableSoundOff")
+					}, {
+						value: "true",
+						label: t("enableSoundOn")
+					}],
+					disabled: busy,
+					onEdit: function(v) {
+						controller.edit("enableSound", v === "true");
+					}
+				}), h(SettingsField, {
+					id: "plugin-config-ego-browser-mergesidebar",
+					label: t("mergeSidebar"),
+					hint: t("mergeSidebarHint"),
+					value: state.draft.mergeSidebar ? "true" : "false",
+					options: [{
+						value: "false",
+						label: t("mergeSidebarOff")
+					}, {
+						value: "true",
+						label: t("mergeSidebarOn")
+					}],
+					disabled: busy,
+					onEdit: function(v) {
+						controller.edit("mergeSidebar", v === "true");
 					}
 				}), h(SettingsField, {
 					id: "plugin-config-ego-browser-idletimeout",
@@ -1986,8 +2046,14 @@ window.__ModuleLoader__.load({
 			} catch (e) {
 				betterSidebarService = void 0;
 			}
-			// EGO_FORCE_FLOATING_PATCH: always use the floating watch panel, even when dsh-better-sidebar is installed.
-			betterSidebarService = void 0;
+			// EGO_PANEL_MODE_PATCH: default floating; read mergeSidebar from localStorage (settings save mirrors it).
+			var mergeSidebar = false;
+			try {
+				mergeSidebar = window.localStorage.getItem("ego.mergeSidebar") === "1";
+			} catch (e) {
+				mergeSidebar = false;
+			}
+			if (!mergeSidebar) betterSidebarService = void 0;
 			if (betterSidebarService !== void 0) ctx.effect(() => mountSidebarTab(ctx, betterSidebarService), "ego-browser sidebar tab");
 			else {
 				var disposeFloating = null;
@@ -2001,7 +2067,7 @@ window.__ModuleLoader__.load({
 						}
 					};
 				}, "ego-browser watch panel");
-				if (false) ctx.inject(["betterSidebar"], function(sidebarCtx) {
+				if (mergeSidebar && typeof ctx.inject === "function") ctx.inject(["betterSidebar"], function(sidebarCtx) {
 					var svc;
 					try {
 						svc = typeof sidebarCtx.get === "function" ? sidebarCtx.get("betterSidebar") : sidebarCtx.betterSidebar;

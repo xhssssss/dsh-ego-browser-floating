@@ -28,13 +28,14 @@ export const WM_CLASS = "ego-lite-linux";
 /** Shown in Chrome's profile chip so the agent window is identifiable. */
 const PROFILE_LABEL = "ego lite — agent";
 
+// Local patch: sound is opt-in. The plugin sets EGO_BROWSER_UNMUTE=1 only
+// when Settings -> Plugins -> ego-browser -> "Enable agent browser sound" is
+// on. Default (unset/0) keeps the whole Chrome process muted.
+const UNMUTE_AUDIO = /^(1|true|yes|on)$/i.test(process.env.EGO_BROWSER_UNMUTE ?? "");
+
 const LAUNCH_FLAGS = [
   "--no-first-run",
-  // Local patch (dsh-ego-browser): the agent browser must never make noise. It
-  // runs unattended while the user works, so media autoplay on any visited page
-  // would be an unwelcome surprise. `--mute-audio` mutes the whole Chrome
-  // process; the plugin also bridges it through chromeArgs for stock runtimes.
-  "--mute-audio",
+  ...(UNMUTE_AUDIO ? [] : ["--mute-audio"]),
   // Local patch: keep the agent window OUT OF THE USER'S WAY. The window is
   // created later by a task space (see --no-startup-window below), so the flag
   // has to be on the argv at launch for those windows to come up minimized

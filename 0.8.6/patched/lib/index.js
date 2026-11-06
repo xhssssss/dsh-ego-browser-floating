@@ -1606,7 +1606,9 @@ const prefs = {
 	ffmpegPath: z.string().description("Custom FFmpeg path. Empty = detect PATH or managed install."),
 	githubMirror: z.string().description("HTTPS base replacing https://github.com for managed downloads."),
 	egoCliArgs: z.string().description("Extra args appended to `ego-browser nodejs` argv. Takes effect on the next ego_* call."),
-	chromeArgs: z.string().description("Extra args appended to the Chrome launch argv. Takes effect on the next browser cold start (the browser is a singleton).")
+	chromeArgs: z.string().description("Extra args appended to the Chrome launch argv. Takes effect on the next browser cold start (the browser is a singleton)."),
+	enableSound: z.boolean().description("Enable agent-browser audio. Default false = Chrome starts muted. Takes effect on the next browser cold start."),
+	mergeSidebar: z.boolean().description("Merge the watch panel into dsh-better-sidebar. Default false = floating panel. Refresh the page to apply.")
 };
 const volatilePrefs = Object.fromEntries(Object.entries(prefs).map(([key, field]) => [key, field.volatile()]));
 const Config$1 = z.object({
@@ -1810,6 +1812,8 @@ function resolveConfig(config = {}) {
 		githubMirror: typeof config.githubMirror === "string" ? config.githubMirror : "",
 		egoCliArgs: typeof config.egoCliArgs === "string" ? config.egoCliArgs : "",
 		chromeArgs: typeof config.chromeArgs === "string" ? config.chromeArgs : "",
+		enableSound: config.enableSound === true || config.enableSound === "true" || config.enableSound === 1 || config.enableSound === "1",
+		mergeSidebar: config.mergeSidebar === true || config.mergeSidebar === "true" || config.mergeSidebar === 1 || config.mergeSidebar === "1",
 		isolateSpaces: typeof config.isolateSpaces === "boolean" ? config.isolateSpaces : config.isolateSpaces === "true" || config.isolateSpaces === "1" || config.isolateSpaces === 1,
 		idleTimeoutMin: finiteIn(config.idleTimeoutMin, 0, 1440) ? config.idleTimeoutMin : 0,
 		disableFrameRelay: typeof config.disableFrameRelay === "boolean" ? config.disableFrameRelay : config.disableFrameRelay === "true" || config.disableFrameRelay === "1" || config.disableFrameRelay === 1
@@ -2036,7 +2040,9 @@ const ALLOWED_KEYS = /* @__PURE__ */ new Set([
 	"ffmpegPath",
 	"githubMirror",
 	"egoCliArgs",
-	"chromeArgs"
+	"chromeArgs",
+	"enableSound",
+	"mergeSidebar"
 ]);
 /**
 * Register the `/ego/api` HTTP route on the host's web server.
@@ -3068,7 +3074,8 @@ function resolveEgoEnv(cfg, { platform = process.platform, baseEnv = process.env
 		// unset/empty value keeps it muted. The flag itself lives in the
 		// runtime's LAUNCH_FLAGS; this bridge covers stock runtimes and makes
 		// the mute visible in `chromeArgs (effective)` in ego_doctor.
-		const unmute = /^(1|true|yes|on)$/i.test(env.EGO_BROWSER_UNMUTE ?? "");
+		if (cfg?.enableSound !== void 0) env.EGO_BROWSER_UNMUTE = cfg.enableSound ? "1" : "0";
+		const unmute = cfg?.enableSound === true || /^(1|true|yes|on)$/i.test(env.EGO_BROWSER_UNMUTE ?? "");
 		const configArgs = typeof configChromeArgs === "string" ? configChromeArgs.trim() : "";
 		const parts = [configArgs, unmute ? "" : "--mute-audio"].filter((part) => part !== "");
 		if (parts.length > 0) env.EGO_LINUX_EXTRA_ARGS = parts.join(" ");

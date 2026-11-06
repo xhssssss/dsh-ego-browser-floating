@@ -41,6 +41,19 @@ runtime/ego-linux/src/chrome.mjs 的 Chrome 启动参数包含：
 
 patched/lib/index.js 和 client.js 保留 Google 登录修复、弹出窗口捕获、下载捕获。
 
+## 插件设置（设置 → 插件 → ego-browser）
+
+新增两项，都在插件设置页，不放悬浮窗按钮：
+
+- **启用 agent 浏览器声音**（默认关闭）
+  - 关闭：Chrome 以 --mute-audio 启动，完全静音。
+  - 开启：不再加 --mute-audio；声音交给 Windows 音量合成器。
+  - 默认在合成器里可能是 0，需要手动调高；下次浏览器冷启动生效。
+- **合并到边栏**（默认关闭）
+  - 关闭：悬浮观察球/悬浮窗。
+  - 开启：注册为 dsh-better-sidebar 标签页。
+  - 保存后刷新页面生效，不要求立刻切换。
+
 ## 安装
 
 先装官方 0.8.6：

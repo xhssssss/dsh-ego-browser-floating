@@ -90,3 +90,7 @@ patched/lib/index.js 和 client.js 保留 Google 登录修复、弹出窗口捕�
 
 - 设置重启插件的改版不在这里，它在单独的私有仓库。
 - vision-router 的 webStartup 修复属于 DSH 配置补丁，不在本仓库。
+
+## 安装踩坑记录
+
+在一台全新机器上按本 README 实测后，发现了几处文档与脚本本身的问题（`apply.ps1` 的断言必然报错、装任意插件都会静默还原补丁、宿主半边改动必须重启 DSH 等）。详见 [TROUBLESHOOTING.md](TROUBLESHOOTING.md)，含可用的重打脚本与验证清单。
